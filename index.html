@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fathima 💘</title>
+
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:
+    radial-gradient(circle at 20% 10%, #ffedf6, transparent 55%),
+    radial-gradient(circle at 80% 20%, #ffe3ee, transparent 55%),
+    linear-gradient(180deg, #fff, #ffeaf2);
+}
+.card{
+  width:min(720px,92vw);
+  padding:28px;
+  background:#ffffffcc;
+  border-radius:22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.12);
+  position:relative;
+}
+h1{margin:0;font-size:clamp(28px,4vw,42px)}
+p{font-size:18px;line-height:1.4}
+
+.buttons{
+  margin-top:24px;
+  position:relative;
+  height:90px;
+}
+button{
+  padding:12px 18px;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+  cursor:pointer;
+}
+.yes{
+  background:#ff2d6d;
+  color:white;
+  box-shadow:0 12px 30px rgba(255,45,109,.3);
+}
+.no{
+  background:#f2f2f6;
+  color:#333;
+  position:absolute;
+  left:160px;
+  top:0;
+}
+.msg{
+  margin-top:18px;
+  padding:14px;
+  border-radius:14px;
+  background:#fff;
+  display:none;
+}
+.small{
+  margin-top:10px;
+  font-size:13px;
+  opacity:.75;
+}
+.small a{
+  color:#ff2d6d;
+  text-decoration:none;
+  border-bottom:1px dashed #ff2d6d;
+}
+
+/* Photo fade-in (you were calling this animation) */
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(10px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ---------------- Celebration popup (NEW) ---------------- */
+#celebrateOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  place-items:center;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(4px);
+  z-index:9999;
+}
+
+#celebrateCard{
+  width:min(520px, 92vw);
+  background:#ffffffee;
+  border-radius:22px;
+  padding:22px 18px;
+  box-shadow:0 22px 70px rgba(0,0,0,.25);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+
+#celebrateCard h2{
+  margin:0 0 8px;
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+#celebrateCard p{
+  margin:0 0 14px;
+  font-size:16px;
+  line-height:1.35;
+}
+
+#closeCelebrate{
+  border:none;
+  border-radius:14px;
+  padding:10px 14px;
+  font-size:15px;
+  cursor:pointer;
+  background:#ff2d6d;
+  color:#fff;
+  box-shadow:0 12px 30px rgba(255,45,109,.28);
+}
+
+/* Confetti pieces */
+.confetti{
+  position:fixed;
+  width:10px;
+  height:14px;
+  opacity:0;
+  top:-20px;
+  z-index:10000;
+  animation: confettiFall 1.9s ease forwards;
+}
+
+@keyframes confettiFall{
+  0%   { transform: translateY(0) rotate(0deg); opacity:1; }
+  100% { transform: translateY(110vh) rotate(540deg); opacity:0; }
+}
+
+/* Floating hearts inside popup */
+.popupHeart{
+  position:absolute;
+  font-size:18px;
+  opacity:0;
+  animation: popupFloat 1.6s ease forwards;
+  pointer-events:none;
+}
+@keyframes popupFloat{
+  0%{ transform: translateY(14px) scale(.9); opacity:0; }
+  15%{ opacity:1; }
+  100%{ transform: translateY(-120px) scale(1.15); opacity:0; }
+}
+/* -------------------------------------------------------- */
+
+</style>
+</head>
+
+<body>
+<main class="card">
+  <h1>Fathima, meri jaaaan, will you be my Valentine? 💘</h1>
+  <p>
+    Official proposal for cuddles, love, and excessive affection.
+    Side effects include smiling 😌
+  </p>
+
+  <div class="buttons" id="zone">
+    <button class="yes" id="yes">Yes 💗</button>
+    <button class="no" id="no">No 🙈</button>
+  </div>
+
+  <div class="small">
+    If you genuinely mean no, click <a href="#" id="realNo">here</a> 💛
+  </div>
+
+  <div class="msg" id="msg"></div>
+
+  <div id="photoWrap" style="
+    display:none;
+    margin-top:16px;
+    text-align:center;
+  ">
+    <img
+      src="celebration.gif"
+      alt="gif"
+      style="
+        max-width:220px;
+        width:70%;
+        border-radius:18px;
+        box-shadow:0 12px 30px rgba(0,0,0,.25);
+      "
+    />
+    <div style="margin-top:8px; font-size:14px; opacity:.85;">
+      Your Valentine 😌💘
+    </div>
+  </div>
+</main>
+
+<!-- Celebration popup (NEW) -->
+<div id="celebrateOverlay">
+  <div id="celebrateCard">
+    <h2>💞 YAY!!! 💞</h2>
+    <p>
+      Best decision ever.<br>
+      Congratulations — you are officially <strong>Ateeb’s Valentine</strong> 🥰
+    </p>
+    <button id="closeCelebrate">Okayyy 💗</button>
+  </div>
+</div>
+
+<script>
+/* ---------------- SOUND ENGINE ---------------- */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioCtx();
+
+function playTone(freq, duration=0.12, type="sine", gain=0.15){
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  g.gain.value = gain;
+  osc.connect(g);
+  g.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+// Cute dodge sound
+function dodgeSound(){
+  playTone(620, 0.08, "square", 0.12);
+  setTimeout(()=>playTone(880, 0.08, "square", 0.1), 70);
+}
+
+// Celebration sound
+function yesSound(){
+  playTone(523, 0.15, "sine", 0.18);   // C
+  setTimeout(()=>playTone(659, 0.15, "sine", 0.18), 120); // E
+  setTimeout(()=>playTone(784, 0.18, "sine", 0.18), 240); // G
+}
+
+// Gentle no sound
+function softSound(){
+  playTone(392, 0.2, "triangle", 0.12);
+}
+
+/* ---------------- Celebration popup logic (NEW) ---------------- */
+const celebrateOverlay = document.getElementById("celebrateOverlay");
+const closeCelebrate = document.getElementById("closeCelebrate");
+
+function spawnConfetti(count = 140){
+  for(let i=0;i<count;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = (Math.random() * 100) + "vw";
+    c.style.background = `hsl(${Math.floor(Math.random()*360)}, 90%, 70%)`;
+    c.style.animationDelay = (Math.random() * 0.2) + "s";
+    c.style.transform = `rotate(${Math.random()*180}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 2200);
+  }
+}
+
+function popupHearts(n=16){
+  const emojis = ["💖","💘","💝","💗","💞","💕","✨","🌹"];
+  const card = document.getElementById("celebrateCard");
+  for(let i=0;i<n;i++){
+    const h = document.createElement("div");
+    h.className = "popupHeart";
+    h.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    h.style.left = (10 + Math.random()*80) + "%";
+    h.style.bottom = "10px";
+    h.style.animationDelay = (Math.random()*0.25) + "s";
+    h.style.fontSize = (14 + Math.random()*16) + "px";
+    card.appendChild(h);
+    setTimeout(()=>h.remove(), 1700);
+  }
+}
+
+function openCelebration(){
+  celebrateOverlay.style.display = "grid";
+  spawnConfetti(140);
+  popupHearts(16);
+}
+
+function closeCelebration(){
+  celebrateOverlay.style.display = "none";
+}
+
+closeCelebrate.addEventListener("click", closeCelebration);
+celebrateOverlay.addEventListener("click", (e)=>{
+  if(e.target === celebrateOverlay) closeCelebration();
+});
+/* -------------------------------------------------------------- */
+
+/* ---------------- LOGIC ---------------- */
+const noBtn = document.getElementById("no");
+const zone = document.getElementById("zone");
+const msg = document.getElementById("msg");
+const yesBtn = document.getElementById("yes");
+const realNo = document.getElementById("realNo");
+const photoWrap = document.getElementById("photoWrap"); // (FIX) you use this later
+
+function moveNo(){
+  const zoneRect = zone.getBoundingClientRect();
+  const btnRect = noBtn.getBoundingClientRect();
+
+  const maxX = zoneRect.width - btnRect.width;
+  const maxY = zoneRect.height - btnRect.height;
+
+  noBtn.style.left = Math.random() * maxX + "px";
+  noBtn.style.top  = Math.random() * maxY + "px";
+
+  dodgeSound();
+  msg.style.display = "block";
+  msg.innerHTML = "😂 Nope. Absolutely not. Try again.";
+}
+
+// Dodge on EVERYTHING
+["mouseenter","mousedown","touchstart","focus","click"].forEach(evt=>{
+  noBtn.addEventListener(evt, e=>{
+    e.preventDefault();
+    moveNo();
+  });
+});
+
+// YES
+yesBtn.onclick = ()=>{
+  yesSound();
+  openCelebration(); // ✅ NEW: celebration popup
+
+  msg.style.display = "block";
+  msg.innerHTML = `
+    💞 <strong>YAY!!!</strong><br>
+    Best decision ever.<br><br>
+    Congratulations — you are officially Ateeb’s Valentine 🥰
+  `;
+
+  photoWrap.style.display = "block";
+  photoWrap.style.animation = "fadeIn 0.8s ease";
+
+  noBtn.style.display = "none";
+  yesBtn.disabled = true;
+};
+
+// Honest No
+realNo.onclick = e=>{
+  e.preventDefault();
+  softSound();
+  msg.style.display = "block";
+  msg.innerHTML = `
+    💢 Oops wrong answer try again. 😠<br><br>
+    — Ateeb
+  `;
+  noBtn.style.display = "none";
+  yesBtn.disabled = true;
+};
+</script>
+</body>
+</html>
